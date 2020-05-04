@@ -20,8 +20,7 @@ def setup_chrome_webdriver():
 def setup_headless_chrome():
     chrome_options = setup_chrome_webdriver()
 
-    driver = webdriver.Chrome(chrome_options=chrome_options
-    )
+    driver = webdriver.Chrome(chrome_options=chrome_options)
     return driver
 
 
@@ -53,7 +52,7 @@ def main():
     for list in lists:
         for npm_link in list.find_elements_by_tag_name("a"):
             driver.switch_to.window(
-                driver.window_handles[0] # Switch to the window with github gist
+                driver.window_handles[0]  # Switch to the window with github gist
             )
             npm_url = npm_link.get_attribute("href")  # Get url to the npm package page
             if npm_url not in found_npm_urls:
