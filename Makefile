@@ -21,7 +21,6 @@ bin:
 	rm headless-chromium.zip chromedriver.zip
 
 run: build
-	docker run -it --network="host" -v /dev/shm:/dev/shm npm_scraper
-
+	docker run -it --network="host" -v /dev/shm:/dev/shm -v ${PWD}/github_urls_for_npm_packages.csv:/app/github_urls_for_npm_packages.csv:rw npm_scraper
 clean:
 	rm -rf bin

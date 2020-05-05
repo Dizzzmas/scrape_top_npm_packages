@@ -1,5 +1,7 @@
 import csv
 from os import abort
+from time import sleep
+
 from selenium import webdriver
 import logging
 
@@ -55,6 +57,7 @@ def main():
                 driver.window_handles[0]  # Switch to the window with github gist
             )
             npm_url = npm_link.get_attribute("href")  # Get url to the npm package page
+            log.info(f"npm url: {npm_url}")
             if npm_url not in found_npm_urls:
                 found_npm_urls.append(npm_url)
             else:
@@ -64,33 +67,43 @@ def main():
                 driver.window_handles[1]
             )  # Switch to the npm window
             driver.get(npm_url)  # Go to the npm package page
+            sleep(15)
 
-            package_infos = driver.find_elements_by_xpath(
-                "//div[contains(@class,'dib w-50 bb b--black-10 pr2 w-100')]"
-            )  # Get the element with infos about the package
+            try:
+                package_infos = driver.find_elements_by_xpath(
+                    "//div[contains(@class,'dib w-50 bb b--black-10 pr2 w-100')]"
+                )  # Get the element with infos about the package
+            except Exception as exception:
+                log.exception(exception)
+                if len(driver.window_handles) > 1 and driver.window_handles[1] and driver.current_url.startswith(
+                        "https://www.npmjs.org"):
+                    driver.close()
+                continue
             gh_repo_data = [
                 info for info in package_infos if "Repository" in info.text
             ]  # Get the element with Github repo details
             if gh_repo_data:
                 github_url = (
                     gh_repo_data[0]
-                    .find_element_by_class_name("link")
-                    .get_attribute("href")  # Extract the github url
+                        .find_element_by_class_name("link")
+                        .get_attribute("href")  # Extract the github url
                 )
                 if github_url not in found_github_urls:
                     found_github_urls.append(github_url)
                     # Save url to csv
                     with open(
-                        "github_urls_for_npm_packages.csv", "a+", newline=""
+                            "github_urls_for_npm_packages.csv", "a+", newline=""
                     ) as csvfile:
                         fieldnames = ["github_url"]
                         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                         writer.writerow({"github_url": github_url})
 
                     log.info(f"Found url: {github_url}")
+            if len(driver.window_handles) > 1 and driver.window_handles[1] and driver.current_url.startswith(
+                    "https://www.npmjs.org"):
+                driver.close()  # close the tab with the npm package data and repeat the process
+    return "All urls scraped successfully"
 
-            driver.close()  # close the tab with the npm package data and repeat the process
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
